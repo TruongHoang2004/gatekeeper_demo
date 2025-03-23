@@ -20,6 +20,9 @@ import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
                     database: configService.get<string>('DATABASE_NAME'),
                     entities: [__dirname + '/../**/*.entity{.ts,.js}'],
                     synchronize: true,
+                    ssl: {
+                        rejectUnauthorized: false,
+                    }
                 };
                 logger.log('Database connection configuration loaded');
                 return config;
