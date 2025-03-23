@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { ArticlesService } from './articles.service';
 import { CreateArticleDto } from './dto/create-article.dto';
@@ -7,6 +7,8 @@ import { RoleGuard } from 'src/auth/guard/role.guard';
 import { Roles } from 'src/auth/decorator/role.decorator';
 import { UserRole } from 'src/users/enum/role.enum';
 import { Public } from 'src/auth/decorator/public.decorator';
+import RequestWithUser from 'src/auth/requestWithUser.interface';
+import { User } from 'src/users/entities/user.entity';
 
 @ApiTags('Article')
 @Controller('articles')
@@ -20,7 +22,8 @@ export class ArticlesController {
   @ApiOperation({ summary: 'Create article' })
   @ApiResponse({ status: 201, description: 'The article has been successfully created.' })
   @ApiResponse({ status: 403, description: 'Forbidden.' })
-  create(@Body() createArticleDto: CreateArticleDto) {
+  create(@Body() createArticleDto: CreateArticleDto, @Req() req: RequestWithUser) {
+    createArticleDto.authorId = req.user.id;
     return this.articlesService.create(createArticleDto);
   }
 
@@ -53,7 +56,17 @@ export class ArticlesController {
   @ApiOperation({ summary: 'Update article' })
   @ApiResponse({ status: 200, description: 'The article has been successfully updated.' })
   @ApiResponse({ status: 403, description: 'Forbidden.' })
-  update(@Param('id') id: string, @Body() updateArticleDto: UpdateArticleDto) {
+  update(@Req() req: RequestWithUser, @Param('id') id: string, @Body() updateArticleDto: UpdateArticleDto) {
+    const { user } = req;
+    if (user.role === UserRole.Author) {
+      this.articlesService.findOne(+id).then(article => {
+        if (article.author.id !== user.id) {
+          throw new Error('Forbidden');
+        }
+      }
+      );
+    }
+
     return this.articlesService.update(+id, updateArticleDto);
   }
 
@@ -62,7 +75,18 @@ export class ArticlesController {
   @ApiOperation({ summary: 'Delete article' })
   @ApiResponse({ status: 200, description: 'The article has been successfully deleted.' })
   @ApiResponse({ status: 403, description: 'Forbidden.' })
-  remove(@Param('id') id: string) {
+  remove(@Req() req: RequestWithUser, @Param('id') id: string) {
+
+    const { user } = req;
+    if (user.role === UserRole.Author) {
+      this.articlesService.findOne(+id).then(article => {
+        if (article.author.id !== user.id) {
+          throw new Error('Forbidden');
+        }
+      }
+      );
+    }
+
     return this.articlesService.remove(+id);
   }
 }

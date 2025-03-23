@@ -16,7 +16,7 @@ export class User {
     @Column({ nullable: false })
     password: string;
 
-    @Column({ default: false })
+    @Column({ default: true })
     isActive: boolean;
 
     @Column({ nullable: false, enum: UserRole }) 

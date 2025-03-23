@@ -32,8 +32,11 @@ import { ROLES_KEY } from '../decorator/role.decorator';
       if (!user) {
         throw new UnauthorizedException('Unauthorized at role guard');
       }
+
+      // console.log(user);
   
-      const hasRole = roles.some((role) => role === user.role);
+      const hasRole = () => user.roles.some((role: UserRole) => roles.includes(role));
+      // console.log(hasRole);
   
       if (!hasRole) {
         throw new ForbiddenException('Insufficient permissions');

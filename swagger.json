@@ -399,7 +399,28 @@
       },
       "CreateArticleDto": {
         "type": "object",
-        "properties": {}
+        "properties": {
+          "title": {
+            "type": "string",
+            "example": "My First Article"
+          },
+          "content": {
+            "type": "string",
+            "example": "This is the content of the article."
+          },
+          "published": {
+            "type": "boolean",
+            "example": true
+          },
+          "authorId": {
+            "type": "object",
+            "example": 1
+          }
+        },
+        "required": [
+          "title",
+          "content"
+        ]
       },
       "UpdateArticleDto": {
         "type": "object",

@@ -18,20 +18,13 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     });
   }
 
-  async validate(payload: TokenPayload): Promise<{
-    user: Omit<User, 'password'>;
-  }> {
+  async validate(payload: TokenPayload): Promise<Omit<User, 'password'>> {
     const user = await this.usersService.findOneById(payload.userId);
 
-    // console.log('payload', user);
     if (!user) {
       throw new UnauthorizedException('Unauthorized at strategy');
     }
 
-    // console.log(user);
-
-    return {
-      user: user,
-    }; //Mặc định gắn vào request.user
+    return user; // This will attach the user to request.user
   }
 }
