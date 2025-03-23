@@ -8,7 +8,10 @@ import { LoginDto } from './dto/login.dto';
 import { UsersService } from 'src/users/users.service';
 import { CreateUserDto } from 'src/users/dto/create-user.dto';
 import { TokenPayload } from './tokenPayload.interface';
+import { Public } from './decorator/public.decorator';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Auth')
 @Injectable()
 export class AuthService {
   constructor(
@@ -18,10 +21,14 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
+  @Public()
+  @ApiOperation({ summary: 'Register' })
   register(createUserDto: CreateUserDto) {
     return this.usersService.createUser(createUserDto);
   }
 
+  @Public()
+  @ApiOperation({ summary: 'Login' })
   async login(loginDto: LoginDto) {
     const user = await this.userRepository.findOne({ where: { email: loginDto.email } });
     // console.log(loginDto.password);
