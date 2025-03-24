@@ -21,7 +21,8 @@ export class ArticlesService {
 
     const author = await this.usersService.findOneById(createArticleDto.authorId);
 
-    const article = this.articlesRepository.create(createArticleDto);
+
+    const article = this.articlesRepository.create({ author: author, ...createArticleDto });
     return this.articlesRepository.save(article);
   }
 
@@ -34,7 +35,8 @@ export class ArticlesService {
   }
 
   async findOne(id: number): Promise<Article> {
-    const article = await this.articlesRepository.findOne({where: {id, published: true}});
+    const article = await this.articlesRepository.findOne({where: {id, published: true}, relations: ['author']});
+    console.log(article);
     if (!article) {
       throw new NotFoundException(`Article with id ${id} not found`);
     }
@@ -50,7 +52,8 @@ export class ArticlesService {
     return article;
   }
 
-  async remove(id: number): Promise<void> {
+  async remove(id: number): Promise<string  > {
     await this.articlesRepository.delete(id);
+    return "Article deleted";
   }
 }

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req, ForbiddenException } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { ArticlesService } from './articles.service';
 import { CreateArticleDto } from './dto/create-article.dto';
@@ -24,6 +24,7 @@ export class ArticlesController {
   @ApiResponse({ status: 403, description: 'Forbidden.' })
   create(@Body() createArticleDto: CreateArticleDto, @Req() req: RequestWithUser) {
     createArticleDto.authorId = req.user.id;
+    console.log(createArticleDto);
     return this.articlesService.create(createArticleDto);
   }
 
@@ -49,22 +50,19 @@ export class ArticlesController {
     return this.articlesService.findOne(+id);
   }
 
-  
-
   @Patch(':id')
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Update article' })
   @ApiResponse({ status: 200, description: 'The article has been successfully updated.' })
   @ApiResponse({ status: 403, description: 'Forbidden.' })
-  update(@Req() req: RequestWithUser, @Param('id') id: string, @Body() updateArticleDto: UpdateArticleDto) {
+  async update(@Req() req: RequestWithUser, @Param('id') id: string, @Body() updateArticleDto: UpdateArticleDto) {
     const { user } = req;
+
+    const article = await this.articlesService.findOne(+id);
     if (user.role === UserRole.Author) {
-      this.articlesService.findOne(+id).then(article => {
-        if (article.author.id !== user.id) {
-          throw new Error('Forbidden');
-        }
+      if (article.author.id !== user.id) {
+        throw new Error('Forbidden');
       }
-      );
     }
 
     return this.articlesService.update(+id, updateArticleDto);
@@ -75,16 +73,15 @@ export class ArticlesController {
   @ApiOperation({ summary: 'Delete article' })
   @ApiResponse({ status: 200, description: 'The article has been successfully deleted.' })
   @ApiResponse({ status: 403, description: 'Forbidden.' })
-  remove(@Req() req: RequestWithUser, @Param('id') id: string) {
+  async remove(@Req() req: RequestWithUser, @Param('id') id: string) {
 
     const { user } = req;
+    const article = await this.articlesService.findOne(+id);
     if (user.role === UserRole.Author) {
-      this.articlesService.findOne(+id).then(article => {
-        if (article.author.id !== user.id) {
-          throw new Error('Forbidden');
-        }
+      console.log(article, user.id);
+      if (article.author === null || article.author.id !== user.id) {
+        throw new ForbiddenException('Forbidden');
       }
-      );
     }
 
     return this.articlesService.remove(+id);
